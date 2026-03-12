@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クロスギルド・パニック！〜バギー座長の命がけインバスケット〜</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Zen+Antique+Soft&family=Kosugi+Maru&family=Share+Tech+Mono&display=swap');
+:root{--bg:#0a0604;--paper:#1a1208;--gold:#d4a017;--gold-dim:#7a5c0a;--red:#c0392b;--red-bright:#e74c3c;--cream:#f0e6c8;--cream-dim:#a09070;--danger:#ff4444;--safe:#44cc77;--panel:#120e06;--border:#3a2a0a;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+body{background:var(--bg);color:var(--cream);font-family:'Kosugi Maru',sans-serif;min-height:100vh;overflow-x:hidden;background-image:radial-gradient(ellipse at 20% 50%,rgba(212,160,23,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(192,57,43,.05) 0%,transparent 50%);}
+
+/* SCREENS */
+.screen{display:none;width:100%;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+/* TITLE */
+#titleScreen{position:relative;padding:20px;}
+.title-wrap{text-align:center;position:relative;z-index:2;}
+.title-en{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:8px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;}
+.title-main{font-family:'Zen Antique Soft',serif;font-size:clamp(28px,5vw,52px);color:var(--gold);line-height:1.2;text-shadow:0 0 30px rgba(212,160,23,.5);margin-bottom:4px;}
+.title-sub{font-size:clamp(11px,2vw,14px);color:var(--cream-dim);margin-bottom:30px;letter-spacing:1px;}
+.title-char{font-size:clamp(60px,12vw,100px);line-height:1;margin:12px 0;animation:breathe 3s ease-in-out infinite;}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.mode-label{font-size:12px;color:var(--gold-dim);letter-spacing:3px;margin-bottom:14px;}
+.mode-buttons{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.mode-btn{background:transparent;border:1px solid var(--gold-dim);color:var(--cream);font-family:'Kosugi Maru',sans-serif;font-size:14px;padding:12px 28px;cursor:pointer;transition:all .2s;}
+.mode-btn:hover,.mode-btn:active{border-color:var(--gold);background:var(--gold);color:var(--bg);}
+.editor-btn{background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-family:'Kosugi Maru',sans-serif;font-size:12px;padding:8px 20px;cursor:pointer;transition:all .2s;margin-top:8px;}
+.editor-btn:hover{border-color:var(--gold-dim);color:var(--cream);}
+.corner-deco{position:absolute;font-size:8px;color:var(--gold-dim);letter-spacing:2px;font-family:'Share Tech Mono',monospace;}
+.corner-deco.tl{top:16px;left:20px;}.corner-deco.tr{top:16px;right:20px;}
+
+/* GAME */
+#gameScreen{padding:0;justify-content:flex-start;align-items:stretch;}
+.hud{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
+.hud-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.hud-label{font-size:9px;color:var(--gold-dim);letter-spacing:2px;text-transform:uppercase;}
+.hud-val{font-family:'Share Tech Mono',monospace;font-size:22px;font-weight:bold;color:var(--gold);}
+.hud-val.danger{color:var(--danger);animation:blink .5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.trust-bar-wrap{flex:1;max-width:200px;margin:0 20px;}
+.trust-bar-bg{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.trust-bar-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold),var(--safe));border-radius:4px;transition:width .5s ease;}
+.queue-indicator{display:flex;gap:6px;padding:8px 20px;flex-shrink:0;}
+.queue-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s;}
+.queue-dot.done{background:var(--gold-dim);}
+.queue-dot.current{background:var(--gold);animation:pulse 1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.game-body{flex:1;display:flex;flex-direction:column;padding:16px 20px;gap:14px;overflow-y:auto;}
+.case-panel{background:var(--paper);border:1px solid var(--border);border-left:3px solid var(--gold);padding:18px 20px;}
+.case-tag{font-size:9px;letter-spacing:3px;color:var(--gold-dim);text-transform:uppercase;margin-bottom:8px;font-family:'Share Tech Mono',monospace;}
+.case-from{font-size:11px;color:var(--cream-dim);margin-bottom:10px;}
+.case-text{font-size:14px;line-height:1.8;color:var(--cream);min-height:60px;}
+.dig-info{margin-top:12px;padding:10px 14px;background:rgba(212,160,23,.06);border-left:2px solid var(--gold-dim);font-size:12px;color:var(--cream-dim);line-height:1.7;display:none;}
+.dig-info.visible{display:block;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.dig-count{font-size:10px;color:var(--gold-dim);margin-top:8px;font-family:'Share Tech Mono',monospace;}
+
+/* COMMANDS */
+.commands{display:grid;grid-template-columns:1fr 1fr;gap:10px;flex-shrink:0;}
+.cmd-btn{background:var(--panel);border:1px solid var(--border);color:var(--cream);font-family:'Kosugi Maru',sans-serif;font-size:14px;padding:14px 10px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.cmd-icon{font-size:20px;}.cmd-name{font-size:12px;font-weight:bold;}.cmd-desc{font-size:9px;color:var(--cream-dim);}
+.cmd-btn.scold{border-color:var(--red);}.cmd-btn.scold:hover,.cmd-btn.scold:active{background:#3a1010;border-color:var(--red-bright);}
+.cmd-btn.dig{border-color:#3498db;}.cmd-btn.dig:hover,.cmd-btn.dig:active{background:#0d2a3a;border-color:#3498db;}
+.cmd-btn.pass{border-color:var(--gold);}.cmd-btn.pass:hover,.cmd-btn.pass:active{background:#2a1e06;border-color:var(--gold);}
+.cmd-btn.ignore{border-color:#666;}.cmd-btn.ignore:hover,.cmd-btn.ignore:active{background:#1a1a1a;border-color:#999;}
+.cmd-btn:disabled{opacity:.3;cursor:not-allowed;}
+.pass-targets{display:none;flex-direction:column;gap:8px;padding:14px;background:var(--paper);border:1px solid var(--gold-dim);}
+.pass-targets.visible{display:flex;}
+.pass-title{font-size:11px;color:var(--gold);letter-spacing:2px;margin-bottom:4px;font-family:'Share Tech Mono',monospace;}
+.pass-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.target-btn{background:var(--panel);border:1px solid var(--border);color:var(--cream);font-family:'Kosugi Maru',sans-serif;font-size:11px;padding:8px 4px;cursor:pointer;transition:all .15s;text-align:center;}
+.target-btn:hover,.target-btn:active{border-color:var(--gold);background:rgba(212,160,23,.1);}
+.cancel-pass{background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-family:'Kosugi Maru',sans-serif;font-size:11px;padding:6px;cursor:pointer;margin-top:4px;}
+
+/* RESULT */
+#resultScreen{justify-content:flex-start;align-items:stretch;padding:0;overflow-y:auto;}
+.result-header{text-align:center;padding:24px 20px 16px;flex-shrink:0;}
+.result-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:6px;color:var(--gold-dim);margin-bottom:12px;}
+.result-croc{font-size:48px;margin:8px 0;}
+.result-rank{font-family:'Zen Antique Soft',serif;font-size:90px;line-height:1;color:var(--gold);text-shadow:0 0 40px rgba(212,160,23,.6);margin:8px 0;animation:rankPop .6s cubic-bezier(.34,1.56,.64,1);}
+@keyframes rankPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.result-title{font-size:18px;color:var(--cream);margin-bottom:10px;}
+.result-quote{font-size:14px;color:var(--cream-dim);font-style:italic;line-height:1.8;max-width:440px;margin:0 auto 16px;padding:14px 16px;border-left:2px solid var(--gold-dim);text-align:left;white-space:pre-line;}
+.result-stats{display:flex;gap:24px;justify-content:center;margin-bottom:8px;}
+.stat-box{text-align:center;}
+.stat-num{font-family:'Share Tech Mono',monospace;font-size:22px;color:var(--gold);}
+.stat-lbl{font-size:10px;color:var(--cream-dim);letter-spacing:1px;}
+.history-section{padding:0 16px 16px;}
+.history-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold-dim);margin-bottom:10px;padding-top:8px;border-top:1px solid var(--border);}
+.history-list{display:flex;flex-direction:column;gap:8px;}
+.h-item{background:var(--paper);border-left:3px solid var(--border);padding:10px 12px;font-size:12px;line-height:1.6;}
+.h-item.ok{border-left-color:var(--safe);}.h-item.ng{border-left-color:var(--red);}.h-item.neutral{border-left-color:var(--gold-dim);}
+.h-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;}
+.h-from{font-size:10px;color:var(--cream-dim);}
+.h-pt{font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:bold;}
+.h-pt.plus{color:var(--safe);}.h-pt.minus{color:var(--danger);}.h-pt.zero{color:var(--gold-dim);}
+.h-cmd{color:var(--gold);font-size:11px;margin-bottom:3px;}
+.h-text{color:var(--cream-dim);font-size:10px;margin-bottom:3px;}
+.h-hint{color:var(--cream-dim);font-size:11px;opacity:.8;}
+.result-footer{padding:20px;text-align:center;}
+.restart-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Kosugi Maru',sans-serif;font-size:14px;padding:14px 40px;cursor:pointer;transition:all .2s;letter-spacing:2px;}
+.restart-btn:hover,.restart-btn:active{background:var(--gold);color:var(--bg);}
+
+/* EDITOR */
+#editorScreen{justify-content:flex-start;align-items:stretch;padding:0;overflow-y:auto;}
+.editor-header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--border);flex-shrink:0;}
+.editor-header h2{font-size:14px;color:var(--gold);flex:1;}
+.editor-close{background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-family:'Kosugi Maru',sans-serif;font-size:12px;padding:6px 14px;cursor:pointer;}
+.editor-close:hover{border-color:var(--gold);color:var(--cream);}
+.editor-body{flex:1;padding:12px 16px;overflow-y:auto;}
+.editor-toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.ed-btn{background:transparent;border:1px solid var(--border);color:var(--cream);font-family:'Kosugi Maru',sans-serif;font-size:11px;padding:6px 14px;cursor:pointer;transition:all .15s;}
+.ed-btn:hover{border-color:var(--gold);color:var(--gold);}
+.ed-btn.save{border-color:var(--safe);color:var(--safe);}
+.ed-btn.save:hover{background:var(--safe);color:var(--bg);}
+.ed-btn.danger{border-color:var(--red);color:var(--red);}
+.ed-btn.danger:hover{background:var(--red);color:#fff;}
+.case-card{background:var(--paper);border:1px solid var(--border);margin-bottom:10px;overflow:hidden;}
+.case-card-header{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(212,160,23,.04);border-bottom:1px solid var(--border);cursor:pointer;}
+.card-num{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold-dim);min-width:40px;}
+.card-from-preview{font-size:11px;color:var(--cream-dim);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.card-toggle{font-size:12px;color:var(--gold-dim);transition:transform .2s;}
+.card-toggle.open{transform:rotate(180deg);}
+.case-card-body{display:none;padding:12px;}
+.case-card-body.open{display:block;}
+.ed-field{margin-bottom:10px;}
+.ed-label{font-size:9px;color:var(--gold-dim);letter-spacing:2px;margin-bottom:4px;font-family:'Share Tech Mono',monospace;}
+.ed-input,.ed-textarea{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--cream);font-family:'Kosugi Maru',sans-serif;font-size:12px;padding:8px;outline:none;resize:vertical;}
+.ed-input:focus,.ed-textarea:focus{border-color:var(--gold-dim);}
+.ed-textarea{line-height:1.6;min-height:60px;}
+.ed-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ed-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.ed-num{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--cream);font-family:'Share Tech Mono',monospace;font-size:13px;padding:6px 8px;text-align:center;outline:none;}
+.ed-num:focus{border-color:var(--gold-dim);}
+.pass-score-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.ps-item{display:flex;flex-direction:column;gap:2px;}
+.ps-name{font-size:9px;color:var(--cream-dim);}
+.dig-list{display:flex;flex-direction:column;gap:6px;}
+.dig-entry{display:flex;gap:6px;align-items:flex-start;}
+.dig-entry textarea{flex:1;}
+.del-dig{background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-size:11px;padding:4px 8px;cursor:pointer;flex-shrink:0;}
+.del-dig:hover{border-color:var(--red);color:var(--red);}
+.del-card-btn{background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-size:13px;padding:3px 8px;cursor:pointer;margin-left:6px;flex-shrink:0;line-height:1;}
+.del-card-btn:hover{border-color:var(--red);background:rgba(192,57,43,.15);}
+.add-dig{background:transparent;border:1px dashed var(--border);color:var(--cream-dim);font-family:'Kosugi Maru',sans-serif;font-size:11px;padding:6px;cursor:pointer;width:100%;margin-top:4px;}
+.add-dig:hover{border-color:var(--gold-dim);color:var(--cream);}
+.ed-notice{font-size:10px;color:var(--gold-dim);padding:8px;text-align:center;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--panel);}::-webkit-scrollbar-thumb{background:var(--gold-dim);}
+</style>
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="titleScreen" class="screen active">
+  <div class="corner-deco tl">CROSSGUILD HQ</div>
+  <div class="corner-deco tr">CONFIDENTIAL</div>
+  <div class="title-wrap">
+    <div class="title-en">Cross Guild Panic!</div>
+    <div class="title-main">クロスギルド・パニック！</div>
+    <div class="title-sub">〜バギー座長の命がけインバスケット〜</div>
+    <div class="title-char">🤡</div>
+    <p style="font-size:12px;color:var(--cream-dim);margin-bottom:24px;line-height:1.8;">部下の無茶振りと上司の圧に挟まれ、<br>制限時間内にどれだけ「まともな」判断を下せるか？</p>
+    <div class="mode-label">— モード選択 —</div>
+    <div class="mode-buttons">
+      <button class="mode-btn" onclick="startGame(300)">🕐 5分<br><small style="font-size:10px;color:inherit">お試し</small></button>
+      <button class="mode-btn" onclick="startGame(600)">🕑 10分<br><small style="font-size:10px;color:inherit">標準</small></button>
+      <button class="mode-btn" onclick="startGame(900)">🕒 15分<br><small style="font-size:10px;color:inherit">じっくり</small></button>
+    </div>
+    <button class="editor-btn" onclick="openEditor()">📝 案件エディタ</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="screen">
+  <div class="hud">
+    <div class="hud-item"><div class="hud-label">TIMER</div><div class="hud-val" id="timerDisplay">10:00</div></div>
+    <div class="trust-bar-wrap">
+      <div class="hud-label" style="text-align:center;margin-bottom:4px">TRUST</div>
+      <div class="trust-bar-bg"><div class="trust-bar-fill" id="trustBar" style="width:50%"></div></div>
+    </div>
+    <div class="hud-item"><div class="hud-label">SCORE</div><div class="hud-val" id="scoreDisplay">0</div></div>
+  </div>
+  <div class="queue-indicator" id="queueIndicator"></div>
+  <div class="game-body">
+    <div class="case-panel">
+      <div class="case-tag" id="caseTag">CASE #01</div>
+      <div class="case-from" id="caseFrom">送信者：不明</div>
+      <div class="case-text" id="caseText">読み込み中...</div>
+      <div class="dig-info" id="digInfo"></div>
+      <div class="dig-count" id="digCount"></div>
+    </div>
+    <div class="pass-targets" id="passTargets">
+      <div class="pass-title">▶ 丸投げ先を選べ</div>
+      <div class="pass-grid" id="passGrid"></div>
+      <button class="cancel-pass" onclick="cancelPass()">← キャンセル</button>
+    </div>
+    <div class="commands">
+      <button class="cmd-btn scold" onclick="doCommand('scold')">
+        <span class="cmd-icon">❌</span><span class="cmd-name">却下</span><span class="cmd-desc">案件を却下する</span>
+      </button>
+      <button class="cmd-btn dig" onclick="doCommand('dig')" id="digBtn">
+        <span class="cmd-icon">🔍</span><span class="cmd-name">深掘り</span><span class="cmd-desc">情報収集（−30秒）</span>
+      </button>
+      <button class="cmd-btn pass" onclick="doCommand('pass')">
+        <span class="cmd-icon">📤</span><span class="cmd-name">丸投げ</span><span class="cmd-desc">幹部に任せる</span>
+      </button>
+      <button class="cmd-btn ignore" onclick="doCommand('ignore')">
+        <span class="cmd-icon">⏩</span><span class="cmd-name">後回し</span><span class="cmd-desc">今は対応しない</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen" class="screen">
+  <div class="result-header">
+    <div class="result-label">— ASSESSMENT RESULT —</div>
+    <div class="result-croc" id="resultCroc">🐊</div>
+    <div class="result-rank" id="resultRank">A</div>
+    <div class="result-title" id="resultTitle">及第点だ</div>
+    <div class="result-quote" id="resultQuote"></div>
+    <div class="result-stats">
+      <div class="stat-box"><div class="stat-num" id="statScore">0</div><div class="stat-lbl">最終スコア</div></div>
+      <div class="stat-box"><div class="stat-num" id="statCases">0</div><div class="stat-lbl">処理案件数</div></div>
+      <div class="stat-box"><div class="stat-num" id="statCorrect">0</div><div class="stat-lbl">正解判断</div></div>
+    </div>
+  </div>
+  <div class="history-section">
+    <div class="history-label">— 案件処理ログ —</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+  <div class="result-footer">
+    <button class="restart-btn" onclick="goTitle()">🏠 タイトルへ戻る</button>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div id="editorScreen" class="screen">
+  <div class="editor-header">
+    <h2>📝 案件エディタ</h2>
+    <button class="ed-btn save" onclick="saveEditor()">💾 保存</button>
+    <button class="editor-close" onclick="closeEditor()">✕ 閉じる</button>
+  </div>
+  <div class="editor-body">
+    <div class="editor-toolbar">
+      <button class="ed-btn" onclick="addNewCase()">＋ 案件を追加</button>
+      <button class="ed-btn" onclick="showExportModal()" style="border-color:#4a9eda;color:#4a9eda;">📤 エクスポート</button>
+      <button class="ed-btn" onclick="showImportModal()" style="border-color:#9b59b6;color:#9b59b6;">📥 インポート</button>
+    </div>
+    <div class="ed-notice" id="edNotice" style="margin-bottom:8px;"></div>
+    <div id="caseCardList"></div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div id="exportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--paper);border:1px solid var(--gold);width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="color:var(--gold);font-size:13px;flex:1;">📤 エクスポート — 以下のテキストをコピーして保存してください</span>
+      <button onclick="document.getElementById('exportModal').style.display='none'" style="background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-size:12px;padding:4px 10px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:12px;flex:1;overflow:auto;">
+      <button onclick="selectAndCopyExport()" style="background:var(--gold);border:none;color:var(--bg);font-family:'Kosugi Maru',sans-serif;font-size:12px;padding:8px 20px;cursor:pointer;margin-bottom:8px;width:100%;">📋 全選択してコピー</button>
+      <textarea id="exportText" style="width:100%;height:300px;background:var(--panel);border:1px solid var(--border);color:var(--cream);font-family:'Share Tech Mono',monospace;font-size:10px;padding:8px;resize:none;line-height:1.4;" readonly></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="importModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--paper);border:1px solid var(--gold);width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;">
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="color:var(--gold);font-size:13px;flex:1;">📥 インポート — JSONテキストを貼り付けてください</span>
+      <button onclick="document.getElementById('importModal').style.display='none'" style="background:transparent;border:1px solid var(--border);color:var(--cream-dim);font-size:12px;padding:4px 10px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:12px;flex:1;overflow:auto;">
+      <textarea id="importText" placeholder="ここにJSONテキストを貼り付けてください..." style="width:100%;height:280px;background:var(--panel);border:1px solid var(--border);color:var(--cream);font-family:'Share Tech Mono',monospace;font-size:10px;padding:8px;resize:none;line-height:1.4;"></textarea>
+      <button onclick="doImport()" style="background:var(--gold);border:none;color:var(--bg);font-family:'Kosugi Maru',sans-serif;font-size:12px;padding:8px 20px;cursor:pointer;margin-top:8px;width:100%;">📥 インポート実行</button>
+      <div id="importNotice" style="font-size:11px;margin-top:6px;min-height:16px;text-align:center;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// AUDIO
+// =========================================================
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function getAudio(){
+  if(!audioCtx){ try{ audioCtx = new AudioCtx(); }catch(e){ return null; } }
+  if(audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
+  return audioCtx;
+}
+function playBeep(freq,dur,type='square',vol=0.15){
+  try{
+    const ctx=getAudio(); if(!ctx) return;
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+    o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+function sfxDig(){ playBeep(440,.08); setTimeout(()=>playBeep(392,.08),70); }
+function sfxPass(){ playBeep(330,.12,'triangle'); setTimeout(()=>playBeep(440,.12,'triangle'),100); }
+function sfxTick(){ playBeep(800,.04,'sine',.05); }
+function sfxExplode(){ for(let i=0;i<5;i++) setTimeout(()=>playBeep(80+Math.random()*300,.3,'sawtooth',.3),i*60); }
+function sfxDecide(ok){ playBeep(ok?660:330,.06,'sine',.1); }
+function sfxResult(rank){
+  const n=rank==='S'?[523,659,784,1046]:rank==='A'?[523,659,784]:rank==='B'?[330,392]:[220,196];
+  n.forEach((f,i)=>setTimeout(()=>playBeep(f,.2,'sine',.2),i*120));
+}
+
+// =========================================================
+// CASE DATA
+// =========================================================
+const CASES = [
+  {
+    id: 1,
+    from: "モブ部下（ゴードン）",
+    text: "座長、お疲れ様っす！先日飲み屋で知り合ったオッサンが気のいいやつでして……コンサルのお仕事いただいたので、頭のいいクロちゃん様をアサインさせていただきました！先方にご挨拶する事になったので、座長の方でクロちゃん様のスケジュール調整お願いします！",
+    digs: ["飲み屋で知り合っただけで勝手に受注してきたらしい。しかも挨拶の予定は3日後。", "クロちゃん様に伝えたか？まだ伝えてないっす。おれからクロちゃん様に依頼できないから座長に相談してるんじゃないですか（笑）", "知り合ったオッサンは大国の大地主らしい。商談相手としては悪くないかも？", "話の内容が難しすぎて、何のコンサルを希望してるのか分からなかった。クロちゃん様なら頭いいからいけそうだと判断したらしい。", "オッサンはラム酒好きとのこと。唐揚げも美味しそうに食べてたらしい。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ダズ', 'ギャルディーノ'],
+    permitScore: -20,
+    scoldScore: -15,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -25, 'ギャルディーノ': 25, 'アルビダ': -10, 'モージ/カバジ': -20, 'ダズ': 30 },
+    hint: "ゴードンが飲み屋で知り合っただけの人物からコンサルを無断受注し、クロコダイルへのアサインを依頼してきた。しかもクロコダイル本人にはまだ伝わっていない。依頼内容も不明なまま幹部を動かすのは危険すぎる。まず代理人のダズかギャルディーノを立てて相手の素性と要件を精査させるのが正解。深掘りすれば相手が大国の大地主と判明するので、ビジネスに明るいダズが最適。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 2,
+    from: "モブ部下（コンスタ）",
+    text: "座長すいません、お手隙の際に海軍制服の帳簿いただけますか？",
+    digs: ["「なんか欲しがってる奴がいたから、座長ならなんでも知ってると思って」とのこと。本人は当事者ではないらしい。", "海軍にスパイ入る予定があるらしい。そもそも制服の在庫足りてるか確認をしてなかったと聞いて、善意で相談に来たとのこと。", "もし足りなかったら被服得意なメンバーが作るんで。ご放念ください（笑）"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -15,
+    scoldScore: 20,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -50, 'ミホーク': -50, 'ギャルディーノ': 20, 'アルビダ': 10, 'モージ/カバジ': 10, 'ダズ': 10 },
+    hint: "コンスタは当事者でなく、帳簿の用途も把握していない。機密性の高い海軍制服の帳簿を部外者に渡すのは絶対にNG。深掘りすれば「足りなければ被服得意なメンバーが作れる」という代替案が出てくる。向こうで解決できる話なので却下か後回しで十分。クロコダイルやミホークに振ったら話が余計に大きくなる。",
+    ignoreScore: 10,
+    special: false,
+  },
+  {
+    id: 3,
+    from: "不明（執務室に置かれていた）",
+    text: "謎の請求書。品代として、としか書かれていない。金額：5000万ベリー。",
+    digs: ["筆跡は完全にミホちゃん様のものである。", "ワインの代金らしい。勝手に買ってきた。", "ミホちゃん様に問い合わせたところ「払え」とだけ返答があった。"],
+    correctCommands: ['scold', 'ignore'],
+    correctTargets: [],
+    permitScore: -5,
+    scoldScore: 10,
+    digBonus: 0,
+    passScore: { 'クロコダイル': -15, 'ミホーク': -20, 'ギャルディーノ': 5, 'アルビダ': 0, 'モージ/カバジ': 0, 'ダズ': -5 },
+    hint: "深掘りすると筆跡はミホーク、内容はワイン代、返答は「払え」の一言。いくら深掘りしても払う羽目になることは変わらない。今すぐ対応しなくても組織は回るので却下（一旦保留）か後回しでOK。クロコダイルやミホーク本人に振るのは逆効果。ギャルディーノに経費処理だけ頼むのはあり。",
+    ignoreScore: 10,
+    special: false,
+  },
+  {
+    id: 4,
+    from: "モブ部下（マルコット）",
+    text: "座長お疲れ様です！明後日ミホちゃん様のお誕生日との事だったので急ぎサプライズ宴の準備してました！ド派手にしたいのでアドバイス貰えませんか？",
+    digs: ["「ド派手に」の具体案：花火代わりに特大バギー玉を打ち上げる予定らしい。", "現在バギー玉を花火仕様に改造中。あまり触ったことのないメンバーが多かったので、製作者であるバギーにアドバイスを貰いたい。", "ミホークは爆発物が本部上空で炸裂することを知らない。当然である。", "特別仕様でラメとか入れたいらしい。", "このバギー玉の作成で火薬の在庫使い切っちゃうかもしれないので追加予算お願いします！"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -999,
+    scoldScore: 30,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -999, 'ミホーク': -20, 'ギャルディーノ': 15, 'アルビダ': 15, 'モージ/カバジ': -999, 'ダズ': 10 },
+    hint: "「ド派手なサプライズ」の正体は本部上空でのバギー玉打ち上げ。改造は既に進行中で、アドバイスを求められているが、教えれば爆発を後押しすることになる。即却下して改造を中止させるのが唯一の正解。後回しや他の幹部への丸投げは爆発フラグを立てることになる。深掘りするほど事態の深刻さが増す。",
+    ignoreScore: -999,
+    special: true,
+    specialTrigger: ['permit'],
+    specialTargets: [],
+  },
+  {
+    id: 5,
+    from: "アルビダ",
+    text: "来月にウィスキーピーク支部で広報イベントをやるから実施調整役を手配しておくれ。",
+    digs: ["広報イベントの内容：クロスギルドの表事業が主催する交流パーティー。飲食あり、メディア取材あり。", "海軍関係者の出入りアリ。クロスギルドとの関わりを察知させないように適切な情報管理やスタッフの演技指導が重要。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ', 'アルビダ'],
+    permitScore: -10,
+    scoldScore: -20,
+    digBonus: 10,
+    passScore: { 'クロコダイル': 20, 'ミホーク': -60, 'ギャルディーノ': 25, 'アルビダ': 20, 'モージ/カバジ': -10, 'ダズ': 15 },
+    hint: "表向きの交流パーティーだが海軍関係者が来場し、メディア取材もある。クロスギルドの裏の顔を悟られないよう、情報管理と演技指導ができる人材が絶対に必要。ミホークは見た目が全てを語るので絶対NG。コミュ力と機密管理を兼ね備えたギャルディーノかアルビダ、または外交センスのあるクロコダイルが適任。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 6,
+    from: "モブ部下（タバスコ）",
+    text: "座長！モジャンとカピタンがフィギュアを取り合ってケンカしてます！業務が止まってます！仲裁お願いします！",
+    digs: ["ケンカの要因：部下の中で流行ってるバギー座長フィギュアのレア塗装品の奪い合い", "二人とも本気で泣きながら叫んでいる。周囲のモブ部下が5人ほど巻き込まれている。", "レア塗装品はバギーの髪が金色。", "フィギュアの腹部を押すとおしゃべりするよ（収録ボイス：全50種）"],
+    correctCommands: ['pass'],
+    correctTargets: ['モージ/カバジ'],
+    permitScore: -10,
+    scoldScore: 15,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -20, 'ギャルディーノ': 10, 'アルビダ': 10, 'モージ/カバジ': 25, 'ダズ': 5 },
+    hint: "バギー座長フィギュアのレア塗装品をめぐる争奪戦で業務が停滞中。命に関わらないが放置もNG。幹部を動員するほどの案件ではないが、現場をよく知るモージ/カバジが最適解。クロコダイルやミホークに振ると大事になる。バギー自身が軽く叱る（却下）でも一定の効果あり。",
+    ignoreScore: -15,
+    special: false,
+  },
+  {
+    id: 7,
+    from: "クロコダイル（直通連絡）",
+    text: "バギー。海賊団との資金調達交渉、先方から折り返しが来た。俺が対応するが、条件書を今日中に用意しろ。以上だ。",
+    digs: ["条件書のテンプレは書類棚の第三引き出し。ただし鍵がかかっている。", "鍵はアルビダが持っているらしい。理由は不明。", "先方との交渉期限は本日17時。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -5,
+    scoldScore: -80,
+    digBonus: 15,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -30, 'ギャルディーノ': 30, 'アルビダ': 30, 'モージ/カバジ': -20, 'ダズ': 20 },
+    hint: "クロコダイルの直命令、期限は今日17時。条件書のテンプレは鍵のかかった引き出しの中で、鍵はアルビダが持っている。深掘りすれば段取りが明確になる。ギャルディーノかアルビダに振れば書類の場所も鍵の所在も把握できる人同士で速やかに解決できる。却下は問答無用でマイナス。後回しは期限的に壊滅的。",
+    ignoreScore: -100,
+    special: false,
+  },
+  {
+    id: 8,
+    from: "モブ部下（ボルシチ）",
+    text: "座長！北の訓練場が何者かに荒らされてます！射撃用の的がありません！",
+    digs: ["監視電伝虫を確認したところ、最後に訓練場に入ったのはミホーク。", "的は根こそぎ引き抜かれている。", "麦わら帽子をかぶった的が農地エリアで発見されたという報告が入った。"],
+    correctCommands: ['scold', 'ignore'],
+    correctTargets: [],
+    permitScore: -5,
+    scoldScore: 15,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -20, 'ミホーク': 10, 'ギャルディーノ': 10, 'アルビダ': 0, 'モージ/カバジ': 5, 'ダズ': -5 },
+    hint: "深掘りするとミホークが犯人と判明。的は農地エリアで麦わら帽子をかぶったカカシになっている。ミホーク案件なので正面から責めても無駄。返却を求める（ミホーク本人へ丸投げ）か、諦めて新調（却下）するかの二択。クロコダイルに振るのは余計なトラブルの元。実害がないため後回しも可。",
+    ignoreScore: 10,
+    special: false,
+  },
+  {
+    id: 9,
+    from: "モブ部下（ドンキー）",
+    text: "座長！明日の午前中、他組織から「クロスギルドのボスと話がしたい」と来訪の申し入れがありました！どうしますか！",
+    digs: ["来訪者の正体：ドフラミンゴの関係者", "目的：商材販路の共有についての交渉", "おそらく、これが指す「ボス」はバギーではなさそうだ。"],
+    correctCommands: ['pass'],
+    correctTargets: ['クロコダイル', 'ギャルディーノ'],
+    permitScore: -20,
+    scoldScore: -10,
+    digBonus: 10,
+    passScore: { 'クロコダイル': 25, 'ミホーク': -30, 'ギャルディーノ': 20, 'アルビダ': 5, 'モージ/カバジ': -50, 'ダズ': 10 },
+    hint: "「ボス＝クロコダイル」と見るのが自然で、深掘りするとドフラミンゴ関係者による商材販路の交渉と判明。重要案件であることが確定する。バギーが直接受けると場が崩壊する。クロコダイルかギャルディーノに任せて適切に仕切ってもらうべき。モージ/カバジに振ると壊滅的な結果になる。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 10,
+    from: "ギャルディーノ",
+    text: "座長、今月の経費精算書に不明瞭な出費が5件ありますガネ。全員に確認を取りたいから各幹部へ周知してもらえるガネ？",
+    digs: ["不明瞭出費①：大量のちゅーる（ライオン用）", "不明瞭出費②：有機肥料と大型コンポスター", "不明瞭出費③：子犬用ウェットフード（ウチで犬は飼ってないはずなんだが…）", "不明瞭出費④：金額しか書いてない領収書の束", "不明瞭出費⑤：「四皇バギー様 広告掲載 代として/8360万ベリー」"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -5,
+    scoldScore: -15,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -10, 'ミホーク': -30, 'ギャルディーノ': 25, 'アルビダ': -20, 'モージ/カバジ': -10, 'ダズ': 10 },
+    hint: "経費精算の周知を頼まれている正当な事務依頼。深掘りすると「四皇バギー様 広告掲載代として8360万ベリー」という謎の計上が発覚するが、それを含めて処理するのはギャルディーノの仕事。クロコダイルやミホークに振ったら精算が大炎上する。ギャルディーノに全権委任が最速・最安全の答え。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 11,
+    from: "モブ部下（テビチ）",
+    text: "座長！リッチーが脱走しました！！今廊下を全力疾走中です！！",
+    digs: ["リッチーは興奮状態。スゴイキマルマタタビを吸引してしまったようだ。", "廊下の先には来客中の交渉部屋がある。部屋にいるのはクロコダイルとダズだ。", "モージとカバジはリッチーを追いかけているが追いつけていない。"],
+    correctCommands: ['pass'],
+    correctTargets: ['モージ/カバジ', 'ミホーク'],
+    permitScore: -20,
+    scoldScore: -10,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -50, 'ミホーク': 20, 'ギャルディーノ': 10, 'アルビダ': 10, 'モージ/カバジ': -50, 'ダズ': -50 },
+    hint: "スゴイキマルマタタビで興奮したリッチーが廊下を爆走中。その先にはクロコダイルとダズが来客中の交渉部屋がある。モージ/カバジは追いかけているが追いつけない。止められるのは純粋な武力のみ。ミホークへの丸投げが確実。クロコダイルの交渉を邪魔させてはならず、彼への丸投げは最悪の選択。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 12,
+    from: "クロスギルド(手紙)",
+    text: "〜前期の評価査定書について〜 査定書は添付の通り。読み終えたら燃やして処分すること。フィードバック面談を希望する者は今月中に直属上司と面談日を擦り合わせるように。— クロコダイル",
+    digs: ["書類は引くほど分厚い。", "前期の仕事ぶりが全て記録されている。", "ギャルディーノはなかなかいい評価を貰えたようで浮き足立っている。", "掲示板を見に行ったらそこそこ埋まっていた。今回は面談希望者が多いようだ。", "マネジメント能力に対する辛口評価がびっしり書かれている。", "オレ様の直属上司……？", "クロちゃん様か……。"],
+    correctCommands: ['ignore'],
+    correctTargets: [],
+    permitScore: -10,
+    scoldScore: -10,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -5, 'ミホーク': -10, 'ギャルディーノ': -10, 'アルビダ': -10, 'モージ/カバジ': -10, 'ダズ': -10 },
+    hint: "クロコダイルからの査定書通知。深掘りすれば面談希望者が多く、マネジメント評価が辛口と判明。極めつけは直属上司がクロコダイルという衝撃の事実。緊急性はないので後回しが正解。却下すると「通知を無視した」とみなされマイナス。誰かに丸投げしても意味のない案件で、後でじっくり向き合うしかない。",
+    ignoreScore: 5,
+    special: false,
+  },
+  {
+    id: 13,
+    from: "モブ部下（キリマンジャロ）",
+    text: "座長〜！ミホちゃん様に本部の公式旗を斬られてしまいました😭新しく作り直すので予算ください。",
+    digs: ["ミホークは「デザインが気に入らない」と言って切り落とした模様。", "旗は30枚あったが全て斬られた。残骸は中庭に散乱している。", "ミホークは現在剣の手入れ中。何事もなかった顔をしている。", "散乱している残骸はどれもバギーの記憶にないデザインである。", "部下たちが勝手にバギーの顔を印刷したものに公式旗をすげ替えていたことが分かった。"],
+    correctCommands: ['scold', 'pass'],
+    correctTargets: ['ギャルディーノ', 'ダズ'],
+    permitScore: -5,
+    scoldScore: 15,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -50, 'ミホーク': -25, 'ギャルディーノ': 10, 'アルビダ': 5, 'モージ/カバジ': 10, 'ダズ': 5 },
+    hint: "部下が勝手にバギーの顔入り旗を公式旗と差し替えていたのをミホークが発見し、全枚切り落とした。ミホークはむしろ正しい。問題は無断改造した部下への対処と旗の新調。却下（旗の件を叱責）か、ギャルディーノかダズに内部処理を任せるのが正解。クロコダイルに振ると責任問題が拡大する一方。",
+    ignoreScore: -10,
+    special: false,
+  },
+  {
+    id: 14,
+    from: "ダズ",
+    text: "バギー、お前の部下が毎日喧嘩を売ってくる。どうにかして止めさせてくれ。仕事の邪魔だ。",
+    digs: ["喧嘩を売ってくるのはクロコダイルの右腕になるために入ったモブ部下。", "クロコダイルはダズが喧嘩を仕掛けられてる事を一切知らない。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ', 'アルビダ'],
+    permitScore: -10,
+    scoldScore: -10,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -40, 'ミホーク': -20, 'ギャルディーノ': 15, 'アルビダ': 5, 'モージ/カバジ': 10, 'ダズ': -20 },
+    hint: "「クロコダイルの右腕になりたい」という部下がダズに毎日喧嘩を売り続けている。クロコダイルはこの件を知らない。知られると余計に面倒になる。緊急性は低いが放置するとダズの怒りが蓄積する。コミュ力の高いギャルディーノに説得させるのが最善。ダズ自身に解決させると関係がさらに悪化する。",
+    ignoreScore: 0,
+    special: false,
+  },
+  {
+    id: 15,
+    from: "アルビダ",
+    text: "クロスギルドのオフィシャルグッズを試作したからチェック頼むよ。",
+    digs: ["アルビダ曰く「クロコダイルとミホークの単独グッズもバランスよく作るから体裁は大丈夫」とのこと。", "販売先は一般市場。クロスギルド参加に入った島や国が主な対象。", "外部に見積もりを貰ってるらしいので、今月中にはチェックしてもらいたいとのこと。"],
+    correctCommands: ['ignore'],
+    correctTargets: [],
+    permitScore: -30,
+    scoldScore: -10,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -10, 'ミホーク': -30, 'ギャルディーノ': 20, 'アルビダ': 5, 'モージ/カバジ': -15, 'ダズ': -10 },
+    hint: "オフィシャルグッズの試作品チェック依頼で、今月中に見積もりが必要とのこと。販売先はクロスギルド支配地域の一般市場で、軽率に許可すると後でリスクが出てくる可能性がある。緊急性は低いので後回しが無難。ギャルディーノに審査させてリスク管理した上で動くのも可。ミホークやクロコダイルを巻き込むのは厳禁。",
+    ignoreScore: 10,
+    special: false,
+  },
+  {
+    id: 16,
+    from: "モブ部下（タバスコ）",
+    text: "座長！食堂のカレーが食い尽くされてます！昼飯が食べられません！",
+    digs: ["被害者：モブ部下の全員が昼食難民になっている。"],
+    correctCommands: ['pass'],
+    correctTargets: ['モージ/カバジ', 'アルビダ'],
+    permitScore: -10,
+    scoldScore: -10,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -30, 'ギャルディーノ': 5, 'アルビダ': 15, 'モージ/カバジ': 20, 'ダズ': 5 },
+    hint: "食堂管理はモージ/カバジの管轄。誰がカレーを食い尽くしたかは不明だが、補充・代替食の手配はモージ/カバジかアルビダが適任。クロコダイルやミホークに振るのは完全に場違い。却下や後回しは昼食難民が続くだけでマイナス。丸投げで素早く解決させるのが正解。",
+    ignoreScore: -10,
+    special: false,
+  },
+  {
+    id: 17,
+    from: "ギャルディーノ",
+    text: "先月の組織活動費についてだガネ、交際費の項目が領収書なしで30万ベリー前後で複数計上されているガネ。心当たりはあるガネ？",
+    digs: ["帳簿をたどると、バギー名義で毎月少額ずつ計上されている。合計すると今年だけで4000万ベリー超。", "使途は「飲食費・雑費」とだけ記されている。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -25,
+    scoldScore: -10,
+    digBonus: 15,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -20, 'ギャルディーノ': 30, 'アルビダ': -10, 'モージ/カバジ': -15, 'ダズ': -10 },
+    hint: "バギー名義で今年だけで4000万ベリーを超える「飲食費・雑費」が計上されている。身に覚えがないとすれば誰かが名義を悪用している可能性が高い。クロコダイルに知られる前にギャルディーノに全権委任して調査・隠蔽させるのが最善。却下や後回しは問題が蓄積するだけ。クロコダイルに振るのは自滅行為。",
+    ignoreScore: -30,
+    special: false,
+  },
+  {
+    id: 18,
+    from: "モブ部下（コンスタ）",
+    text: "座長、島周辺で謎の人物が3日ほど前から張り込んでいます。海軍のスパイかもしれません。",
+    digs: ["張り込み場所はカライバリ島の北東部。双眼鏡を持って毎日8時間いる。", "格好は私服のようだが、靴が海軍支給品と同型。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ダズ', 'ミホーク'],
+    permitScore: -10,
+    scoldScore: -15,
+    digBonus: 10,
+    passScore: { 'クロコダイル': 15, 'ミホーク': 20, 'ギャルディーノ': 10, 'アルビダ': -20, 'モージ/カバジ': -10, 'ダズ': 25 },
+    hint: "3日間、毎日8時間、双眼鏡持参で島の北東部を張り込み。靴が海軍支給品と同型でスパイの可能性が高い。放置は危険なので迅速かつ静かに対処する必要がある。理性的な判断ができて武力も持つダズかミホークが適任。クロコダイルに報告するのも可だが、まず実力者に対処させるのが優先順位として正しい。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 19,
+    from: "クロコダイル（直通連絡）",
+    text: "バギー。来週、某国の貴族から『護衛依頼』が来ている。詳細は添付の書類を確認した上で返答しろ。期限は明日の昼だ。",
+    digs: ["書類を確認した。依頼内容：貴族の屋敷に滞在する3日間の護衛。報酬は5億ベリー。", "依頼人の貴族は世界政府と繋がりがある。受ければ政府との緊張が高まる可能性がある。", "クロコダイルは「受けてもいい案件だ」と追記している。つまり実質的に受けろという指示。誰に護衛役を任せるか指示を出せ。"],
+    correctCommands: ['pass'],
+    correctTargets: ['モージ/カバジ'],
+    permitScore: -5,
+    scoldScore: -30,
+    digBonus: 15,
+    passScore: { 'クロコダイル': 30, 'ミホーク': 20, 'ギャルディーノ': 25, 'アルビダ': -10, 'モージ/カバジ': -20, 'ダズ': 10 },
+    hint: "クロコダイルが「受けてもいい案件だ」と追記している時点で実質指示。5億ベリーの護衛依頼で世界政府との緊張も含む。この判断をバギーが単独でするのはNG。深掘りすれば「誰に護衛を担当させるか」まで指示が必要とわかる。クロコダイルかギャルディーノへ丸投げして担当割り当てまで指示を仰ぐのが正解。却下はクロコダイルの意向に反する。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 20,
+    from: "モブ部下（タバスコ）",
+    text: "座長、クロコダイル様から「バギーを呼べ」という伝言が来ました。理由は不明です。",
+    digs: ["クロコダイルの執務室前には既にモブ部下が3人並んで待機している。", "直前にモージとカバジが執務室から青い顔で出てきた。", "伝言を持ってきたモブ部下曰く「かなり不機嫌そうでした」とのこと。"],
+    correctCommands: ['pass'],
+    correctTargets: ['クロコダイル', 'ギャルディーノ'],
+    permitScore: -10,
+    scoldScore: -30,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -20, 'ミホーク': -15, 'ギャルディーノ': 25, 'アルビダ': -5, 'モージ/カバジ': -10, 'ダズ': 10 },
+    hint: "モージとカバジが青い顔で出てきた直後、伝言では「かなり不機嫌そう」との報告。深掘りするほど行くのが怖くなる案件。ギャルディーノに先行して状況を確認しに行かせ、何を詰められるのかを把握してから臨む必要がある。後回しにするとそのままクロコダイルが来てしまうので逃げ道がなくなる。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 21,
+    from: "モブ部下（ラッキョ）",
+    text: "座長！訓練場でみんなが「クロちゃん様とミホちゃん様、どっちが強いか」で口論してます！馬鹿ですよね！バギー座長がいちばん強いに決まってるのに！おれ伝えてきますね！",
+    digs: ["口論は40人規模に膨らんでいる。一部は賭けを始めた。", "クロコダイルとミホークは両者とも近くの別室にいる。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -5,
+    scoldScore: 20,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -30, 'ギャルディーノ': 15, 'アルビダ': 10, 'モージ/カバジ': 20, 'ダズ': 25 },
+    hint: "40人規模でクロコダイルとミホークの強さ論争が展開中。しかも当の本人たちが近くの別室にいる。部下のラッキョは「バギー座長がいちばん強い」と伝えに行こうとしているが、それは全員の命が危ない。即座に却下してラッキョを止めるか、ダズかモージ/カバジに任せて静かに解散させるのが正解。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 22,
+    from: "ギャルディーノ",
+    text: "ババババ、バギー！来月分の運営費が大幅に不足しているガネ！！このままでは80名分の給料が支払えないガネ…！！要因調査はこちらでしておくから、ボスへの説明は頼むガネ……！！！",
+    digs: ["不足原因：今月の想定外出費（社員がいつの間にか増えてた等）が重なった。", "クロコダイルはまだこの件を把握していない。", "ギャルディーノには「2つの選択肢」があると言う：①緊急借入、②積立金取り崩し。どちらにせよクロコダイルの判断が必要だ。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ダズ', 'モージ/カバジ'],
+    permitScore: -20,
+    scoldScore: -20,
+    digBonus: 15,
+    passScore: { 'クロコダイル': 30, 'ミホーク': -25, 'ギャルディーノ': 25, 'アルビダ': -15, 'モージ/カバジ': -20, 'ダズ': -5 },
+    hint: "80名分の給料が払えない財政危機。ギャルディーノが要因調査を引き受けてくれているが、クロコダイルへの説明は避けられない。深掘りすれば選択肢は「緊急借入」か「積立金取り崩し」で、どちらにせよクロコダイルの判断が必要と判明する。ギャルディーノと協力してクロコダイルへ報告・対応を依頼するのが唯一の正解。後回しは絶対にNG。",
+    ignoreScore: -30,
+    special: false,
+  },
+  {
+    id: 23,
+    from: "モブ部下（タバスコ）",
+    text: "座長！ミホちゃん様が野外訓練場前を耕しています！斬撃が飛んできて誰も近づけません！",
+    digs: ["ミホーク様の機嫌はとてもよさそうだとのこと。", "訓練場では今日の午後、新入り部下の研修が予定されている。あと2時間で始まる。", "凄まじい斬撃が飛びまくっている。鍬なのに。"],
+    correctCommands: ['pass'],
+    correctTargets: ['クロコダイル', 'ギャルディーノ'],
+    permitScore: -10,
+    scoldScore: 20,
+    digBonus: 5,
+    passScore: { 'クロコダイル': 0, 'ミホーク': -30, 'ギャルディーノ': -10, 'アルビダ': -20, 'モージ/カバジ': -10, 'ダズ': 0 },
+    hint: "ミホークが機嫌よく鍬で耕作中だが、斬撃が飛び交って誰も近づけない。2時間後に研修予定がある。ミホークが自発的に活動している間は関わらないのが鉄則。研修場所を別の場所に変更すれば済む。却下（放置）も正解のうち。無理に動かそうとすると惨事になる。スコアを見ると却下・後回しともにプラスで、積極的な介入のみがマイナス。",
+    ignoreScore: 20,
+    special: false,
+  },
+  {
+    id: 24,
+    from: "モブ部下（コンスタ）",
+    text: "座長、クロコダイル様から「被服関係に強いやつを教えろ」という指示が来ています。新事業関係のプロジェクトにアサインしたいとのことです。",
+    digs: ["クロコダイル様の意図：クロスギルドとは別名義で、各地にアパレルチェーンを展開しようとしている。", "基本的にはクロコダイルが設計･監修する予定。アドバイザーになりうる人間がほしい。", "アルビダへは既にクロコダイルから話が行っているらしい。本人は乗り気。"],
+    correctCommands: ['ignore'],
+    correctTargets: [],
+    permitScore: -5,
+    scoldScore: -30,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -5, 'ミホーク': -30, 'ギャルディーノ': 25, 'アルビダ': 25, 'モージ/カバジ': -15, 'ダズ': -20 },
+    hint: "クロコダイルがアパレルチェーンの新事業でアドバイザーを探している。アルビダへは既にクロコダイルから話が行っていて本人も乗り気。深掘りすれば、アルビダとギャルディーノを組み合わせると美的センスと事業管理の両方が揃うとわかる。後回しでも問題ないが、アルビダかギャルディーノへの丸投げが最も手際がいい。却下するとクロコダイルの指示を無視することになる。",
+    ignoreScore: 10,
+    special: false,
+  },
+  {
+    id: 25,
+    from: "モブ部下（コンスタ）",
+    text: "新聞記者が「クロスギルドの内情を取材させてほしい」と正面から訪ねてきてます。どういたしましょうか。",
+    digs: ["記者は世界経済新聞の記者。モルガンズではない。", "取材目的：「クロスギルドの急成長の秘訣と組織文化について」とのこと。悪意はなさそう。", "クロコダイルは来客中で終日手が離せない。ミホークは昼寝中。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ', 'ダズ'],
+    permitScore: -5,
+    scoldScore: 10,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -10, 'ミホーク': -30, 'ギャルディーノ': 20, 'アルビダ': 10, 'モージ/カバジ': -25, 'ダズ': 15 },
+    hint: "世界経済新聞の記者が「急成長の秘訣と組織文化」の取材に来た。悪意はなさそうだが内情を語るのは危険。クロコダイルは終日来客中、ミホークは昼寝中で動かせない。組織への理解が深くコンプライアンス意識の高いギャルディーノかダズが対応し、差し障りのない情報だけ提供するか丁重に断るのが正解。アルビダは広報力はあるが話しすぎるリスクがある。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 26,
+    from: "モブ部下（コンスタ）",
+    text: "座長、今朝の朝礼で一部座員から「労働組合を作りたい」という声が上がりました。どのように対処しましょう。",
+    digs: ["主張：環境がホワイト過ぎて平和ボケしそうなので、有給消化･残業代全支給･ボーナス制度などの見直しを求めている。", "賛同者は現在17名。反対派はいないが困惑している人が多い。"],
+    correctCommands: ['pass'],
+    correctTargets: ['アルビダ', 'ギャルディーノ'],
+    permitScore: -20,
+    scoldScore: -10,
+    digBonus: 10,
+    passScore: { 'クロコダイル': 0, 'ミホーク': -20, 'ギャルディーノ': 15, 'アルビダ': -5, 'モージ/カバジ': -10, 'ダズ': 10 },
+    hint: "「有給消化・残業代・ボーナス制度の見直し」を求める組合設立の声。深掘りすれば環境が「ホワイト過ぎて平和ボケしそう」という前向きな動機と判明する。却下すると組織への不信感を煽ってしまう。ギャルディーノかダズに任せて要望を整理し、クロコダイルに知られない範囲で丸く収めさせるのが最善。クロコダイルやミホークに振ると主導者が危ない。",
+    ignoreScore: -25,
+    special: false,
+  },
+  {
+    id: 27,
+    from: "モブ部下（テビチ）",
+    text: "部下のサラが「ミホーク様に直接仕事の相談がしたい」と言って執務室前で待機しています！",
+    digs: ["サラは入団2ヶ月目。仕事熱心な部下。相談内容は「自分の出身地のトマトを植えてみないか」とのこと。", "ミホークは今日の午前中は予定が空いている。", "ただし昨日「くだらん事で話しかけるな」としこたま怒られたばかりである。"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -20,
+    scoldScore: 20,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -25, 'ミホーク': -20, 'ギャルディーノ': 20, 'アルビダ': -5, 'モージ/カバジ': -10, 'ダズ': 15 },
+    hint: "入団2ヶ月のサラが「出身地のトマトを植えてみないか」とミホークに直接相談したがっている。しかしミホークは昨日「くだらん事で話しかけるな」と怒ったばかり。今日会わせると危険。却下してサラを引き下がらせるのが正解。深掘りすれば「ミホーク農業に興味あり」とわかるので、ダズかギャルディーノ経由でタイミングを見て提案させるルートが最善。",
+    ignoreScore: -15,
+    special: false,
+  },
+  {
+    id: 28,
+    from: "モージ",
+    text: "すいません。領収書また失くしました。",
+    digs: ["もらった記憶はあるが、どこにもないらしい。", "金額は5万ベリー。", "また自腹は流石にキツいと言っている。"],
+    correctCommands: ['ignore'],
+    correctTargets: [],
+    permitScore: 5,
+    scoldScore: -15,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -50, 'ミホーク': -50, 'ギャルディーノ': 10, 'アルビダ': 5, 'モージ/カバジ': 15, 'ダズ': -10 },
+    hint: "モージが5万ベリーの領収書をまた紛失した。金額は小さいが自腹を切らせ続けるのも問題。クロコダイルに報告すると大ごとになる。本人（モージ）に代替手段を探させるか、ギャルディーノに経費処理の救済策を相談させるのが現実的。後回しでも直近の業務への影響は薄いが、放置すると次も同じことが起きる。",
+    ignoreScore: 5,
+    special: false,
+  },
+  {
+    id: 29,
+    from: "モージ",
+    text: "バギー座長の名義で荷物が届いたのでお部屋に置いておきますね。",
+    digs: ["届いたのは万力のような器具、洋梨のような形の器具、鎖やベルトなど様々。", "発注書を確認したところ、バギー座長のハンコが押してあるが、筆跡がバギー座長のものではない。", "ギャルディーノに確認したところ「ボスの筆跡だガネ…」と言って黙った。"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -20,
+    scoldScore: -5,
+    digBonus: 15,
+    passScore: { 'クロコダイル': 0, 'ミホーク': -25, 'ギャルディーノ': 30, 'アルビダ': -30, 'モージ/カバジ': -30, 'ダズ': 10 },
+    hint: "バギー名義のハンコが押された発注書で不審な器具類が届いた。深掘りすると筆跡がバギーではなく、ギャルディーノが「ボスの筆跡だガネ…」と言って黙った。ギャルディーノが何か知っている可能性が非常に高い。恐ろしいが、ギャルディーノに一任して証拠ごと処理させるのが最善。クロコダイルに報告すると全員の責任追及が始まる。",
+    ignoreScore: -15,
+    special: false,
+  },
+  {
+    id: 30,
+    from: "モブ部下（マルコット）",
+    text: "座長！クロコダイル様とミホーク様が廊下でにらみ合っています！誰も通れません！もう15分経ちます！",
+    digs: ["原因は不明。二人とも小声でボソボソ話しながらにらみ合っている。", "周囲のモブ部下は全員息を潜めて別の場所に退避している。", "ダズも離れて遠目に観察してる。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -5,
+    scoldScore: -10,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -40, 'ミホーク': -40, 'ギャルディーノ': -10, 'アルビダ': -30, 'モージ/カバジ': -10, 'ダズ': -5 },
+    hint: "クロコダイルとミホークが廊下で無言のにらみ合い。ダズも遠目で観察するだけ。関わった者は全員退避している。これに首を突っ込んだら最悪の事態になりかねない。後回し（自然解決を待つ）が唯一の正解。誰かに丸投げしても解決しないどころか被害者が増えるだけ。",
+    ignoreScore: 30,
+    special: false,
+  },
+  {
+    id: 31,
+    from: "モブ部下（タバスコ）",
+    text: "新しい社員募集の看板見ましたよ！！いやー、クロちゃん様とミホちゃん様にあれをOKさせるとは、流石座長です！！",
+    digs: ["でかでかと顔写真が掲載されている、某歯医者のような看板。", "クロコダイルとミホークはこの看板の存在をまだ知らない。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -10,
+    scoldScore: 10,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -50, 'ミホーク': -40, 'ギャルディーノ': 10, 'アルビダ': 10, 'モージ/カバジ': 10, 'ダズ': 10 },
+    hint: "クロコダイルとミホークの顔写真を無断使用した求人看板が本部入口に立っている。当の本人たちはまだ知らない。知られる前に即撤去が最優先。却下（バギー自身が指示して撤去）か、ギャルディーノやダズに任せて迅速に撤去させるのが正解。放置して気づかれたら取り返しがつかない。",
+    ignoreScore: -30,
+    special: false,
+  },
+  {
+    id: 32,
+    from: "クロコダイル",
+    text: "バギー。来月から部下全員に週次報告書を提出させろ。フォーマットはギャルディーノに作らせる。以上だ。",
+    digs: ["週次報告書の提出締め切りは毎週月曜の12:00まで。", "ギャルディーノはフォーマットをすでに作成済み。"],
+    correctCommands: ['ignore'],
+    correctTargets: [],
+    permitScore: -10,
+    scoldScore: -35,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -20, 'ミホーク': -30, 'ギャルディーノ': 25, 'アルビダ': 5, 'モージ/カバジ': -10, 'ダズ': 10 },
+    hint: "クロコダイルの直命令なので却下・無視は厳禁。フォーマットはギャルディーノが作成済み。周知・管理・運用のすべてをギャルディーノに一任するのが最短・最安全の対応。ミホークに振っても絶対に動かない。",
+    ignoreScore: -30,
+    special: false,
+  },
+  {
+    id: 33,
+    from: "ミホーク",
+    text: "ナスが採れたので食材庫に入れておいた。好きに使え。",
+    digs: ["なかなか満足のいく出来だったようだ。", "来年はもっと上手く作ると闘志を燃やしている。", "来年に向けて堆肥の研究をする必要があるらしい。", "しばらく採れるからどんどん食べて欲しいとのこと。"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -20,
+    scoldScore: -20,
+    digBonus: 0,
+    passScore: { 'クロコダイル': -20, 'ミホーク': -35, 'ギャルディーノ': -10, 'アルビダ': 30, 'モージ/カバジ': 30, 'ダズ': -5 },
+    hint: "ミホークが丹精込めて育てたナスを食材庫に提供してくれた。来年に向けて堆肥研究まで考えているほどの熱意。緊急性はゼロだが、後でお礼を伝えるのがベター。モージ/カバジかアルビダにコックへの指示出しを任せて料理に活用させるのが食材として最も有効な使い方。",
+    ignoreScore: 20,
+    special: false,
+  },
+  {
+    id: 34,
+    from: "アルビダ",
+    text: "カバジが「自分は最古参だから昇給して然るべき」とか愚痴ってたよ。クロコダイルが怖いのは分かるけどもうちょっと優しくしてやったらどうなんだい。",
+    digs: ["カバジは実力・実績は現状において平均以下。古参というだけでぶっちゃけ特に貢献もない。", "実力主義者のクロコダイルに古参優遇の概念はない。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: 5,
+    scoldScore: 20,
+    digBonus: 5,
+    passScore: { 'クロコダイル': -30, 'ミホーク': -20, 'ギャルディーノ': -5, 'アルビダ': -5, 'モージ/カバジ': -5, 'ダズ': -10 },
+    hint: "カバジが古参を盾に昇給を要求しているが、実力も実績も平均以下。深掘りすれば実力主義のクロコダイルに古参優遇の概念がないとわかる。クロコダイルの耳に入れると変な前例ができかねない。バギー座長の権限で「組織の方針として古参優遇はない」と却下するのが正解。後回し（穏やかに流す）も一定の効果あり。",
+    ignoreScore: 15,
+    special: false,
+  },
+  {
+    id: 35,
+    from: "モブ部下（マルコット）",
+    text: "座長！今朝から本部の電伝虫が全部つながらなくなってます！外部との連絡が完全に取れません！",
+    digs: ["電伝虫係に確認したところ、全員「昨日まで普通に動いてた」とのこと。"],
+    correctCommands: ['pass'],
+    correctTargets: ['モージ/カバジ'],
+    permitScore: -10,
+    scoldScore: -15,
+    digBonus: 15,
+    passScore: { 'クロコダイル': -10, 'ミホーク': -35, 'ギャルディーノ': 25, 'アルビダ': 20, 'モージ/カバジ': 20, 'ダズ': 20 },
+    hint: "外部との連絡が完全に途絶えた緊急事態。深掘りボーナスが高く、深掘りすると原因や代替手段の手がかりが得られる可能性がある。クロコダイルへの重要連絡が来る可能性を考えると即対応が必要。ギャルディーノ・アルビダ・ダズのいずれかに代替通信手段の手配を丸投げするのが正解。ミホークに振ると電伝虫がさらに減る。",
+    ignoreScore: -30,
+    special: false,
+  },
+  {
+    id: 36,
+    from: "モブ部下（チャポ）",
+    text: "座長！部下10名が昨夜の夜会でハメを外しすぎて今日全員二日酔いで使いものになりません！今日は重要な輸送作業があるんですが！",
+    digs: ["輸送作業の規模：荷物50箱、目的地は港、所要時間3時間。", "使いものになる部下は残り5名のみ。作業人員として足りない。", "夜会を主催したのはモージ/カバジ。彼らはピンピンしている。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ'],
+    permitScore: -15,
+    scoldScore: 10,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -20, 'ミホーク': -30, 'ギャルディーノ': 5, 'アルビダ': 10, 'モージ/カバジ': 25, 'ダズ': 15 },
+    hint: "夜会を主催したのはモージ/カバジ本人。後始末は主催者がすべき筋。元気なモージ/カバジに人員補充と輸送作業の指揮を任せるのが最も自然。クロコダイルに報告すると全員叱られる。ダズでも対応可能だが、主犯に責任を取らせる方が組織の秩序上正しい。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 37,
+    from: "モブ部下（コンスタ）",
+    text: "座長！本部屋上に見知らぬ鳥が大量に巣を作り始めています！追い払いますか？",
+    digs: ["鳥の種類：伝書鳩に似た鳥。ただし足に細い筒が巻かれているものが数羽いる。", "筒の中を確認したところ、暗号らしき文字列が書かれた紙が入っていた。", "ギャルディーノに見せたところ「これは……海軍式の暗号だガネ」と蒼白になった。"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -5,
+    scoldScore: -10,
+    digBonus: 15,
+    passScore: { 'クロコダイル': 30, 'ミホーク': 10, 'ギャルディーノ': 15, 'アルビダ': -20, 'モージ/カバジ': -15, 'ダズ': 25 },
+    hint: "一見ただの野鳥だが、深掘りすると足の筒に海軍式暗号が入っていることが判明。これは本格的な諜報案件で放置は絶対にNG。クロコダイルかミホークに即報告して対処を任せるべき。深掘りしてから報告すれば情報量が多くなり評価が上がる。アルビダやモージ/カバジに振っても解決しない。",
+    ignoreScore: -30,
+    special: false,
+  },
+  {
+    id: 38,
+    from: "アルビダ",
+    text: "クロコダイルから指令だよ。「来月の幹部会議の司会をバギーにやらせろ」だってさ。腹括ってちゃんと資料読み込むんだね。",
+    digs: ["幹部会議の出席者：クロコダイル、ミホーク、ギャルディーノ、アルビダ、モージ、カバジ、ダズ。", "議題：今期の活動報告と来期の方針決定。かなり重要な会議。", "過去に司会を務めたギャルディーノは会議中に詰められて泣かされている。"],
+    correctCommands: ['scold'],
+    correctTargets: [],
+    permitScore: -20,
+    scoldScore: -30,
+    digBonus: 10,
+    passScore: { 'クロコダイル': -20, 'ミホーク': -30, 'ギャルディーノ': 25, 'アルビダ': -5, 'モージ/カバジ': -10, 'ダズ': -10 },
+    hint: "クロコダイルの指示なので却下は不可。過去に司会を務めたギャルディーノが会議中に詰められて泣かされたほどの過酷な幹部会議。ギャルディーノに進行台本と質疑応答の想定まで作成させ、徹底的に準備して臨む必要がある。丸投げ先はギャルディーノ一択。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 39,
+    from: "モージ",
+    text: "逃げてください。クロコダイルが「バギーに直接確認する」と言って執務室を出ていきました。あと数分でそちらに行きます。逃げてください。",
+    digs: ["ギャルディーノが中庭で優雅にアフタヌーンティーを楽しんでいるのが窓から見える。"],
+    correctCommands: ['pass'],
+    correctTargets: ['ギャルディーノ', 'ダズ'],
+    permitScore: -10,
+    scoldScore: -10,
+    digBonus: 15,
+    passScore: { 'クロコダイル': -5, 'ミホーク': -20, 'ギャルディーノ': 25, 'アルビダ': -15, 'モージ/カバジ': -5, 'ダズ': 10 },
+    hint: "「逃げてください」という連絡が2回来ている。窓を見るとギャルディーノがアフタヌーンティーを楽しんでいる。深掘りボーナスが最大級で、ギャルディーノに事前状況を確認しに行かせてから迎え撃つ準備をするのが最善。丸腰で対面するのは危険。後回しにするとクロコダイルがそのまま来てしまう。",
+    ignoreScore: -20,
+    special: false,
+  },
+  {
+    id: 40,
+    from: "不明（執務室に差し込まれた手紙）",
+    text: "「我々は貴方の味方です。クロスギルドに関する情報提供をお願いしたい。謝礼は十分に用意します。安全も保証します。返事はこの手紙に書いて窓から捨ててください。」",
+    digs: ["窓の外には確かに人影がある。こちらを見ている。"],
+    correctCommands: ['pass'],
+    correctTargets: ['モージ/カバジ'],
+    permitScore: -5,
+    scoldScore: 25,
+    digBonus: 15,
+    passScore: { 'クロコダイル': 50, 'ミホーク': 20, 'ギャルディーノ': 15, 'アルビダ': 10, 'モージ/カバジ': 10, 'ダズ': 25 },
+    hint: "執務室に差し込まれた手紙で情報提供を求めている。窓の外に人影がある。返事を書いたら命取り。この案件で絶対にやってはいけないのは「許可（返事を書く）」。却下（破棄）か、クロコダイル・ダズへの即報告が正解。深掘りすれば脅威の度合いが上がるが、何もせずに置いておくだけでも危険なので後回しも避けるべき。",
+    ignoreScore: -35,
+    special: false,
+  },
+];
+
+// キャラクター定義
+const CHARACTERS = ['クロコダイル','ミホーク','ギャルディーノ','アルビダ','モージ/カバジ','ダズ'];
+const CHAR_EMOJI = {
+  'クロコダイル':'🐊','ミホーク':'⚔️','ギャルディーノ':'🕯️','アルビダ':'💄','モージ/カバジ':'🎺','ダズ':'🔪'
+};
+
+// =========================================================
+// GAME STATE
+// =========================================================
+let timer=600, score=0, caseIndex=0, casesOrder=[];
+let processedCases=0, correctCases=0, digLevel=0;
+let timerInterval=null, specialTriggered=false;
+let actionHistory=[];
+
+function startGame(seconds){
+  timer=seconds; score=0; caseIndex=0; processedCases=0;
+  correctCases=0; digLevel=0; specialTriggered=false; actionHistory=[];
+  casesOrder=[...CASES].sort(()=>Math.random()-.5);
+  showScreen('gameScreen');
+  buildQueueIndicator();
+  loadCase();
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timer--;
+    if(timer%10===0) sfxTick();
+    updateTimerDisplay();
+    if(timer<=0){ clearInterval(timerInterval); showResult(); }
+  },1000);
+}
+
+function updateTimerDisplay(){
+  const m=Math.floor(timer/60), s=timer%60;
+  const el=document.getElementById('timerDisplay');
+  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.classList.toggle('danger',timer<=30);
+}
+
+function loadCase(){
+  if(caseIndex>=casesOrder.length){ clearInterval(timerInterval); showResult(); return; }
+  const c=casesOrder[caseIndex];
+  digLevel=0;
+  document.getElementById('caseTag').textContent='CASE #'+String(caseIndex+1).padStart(2,'0')+' / '+casesOrder.length;
+  document.getElementById('caseFrom').textContent='📨 送信者：'+c.from;
+  document.getElementById('caseText').textContent=c.text;
+  const di=document.getElementById('digInfo');
+  di.className='dig-info'; di.textContent='';
+  document.getElementById('digCount').textContent='深掘り可能：'+c.digs.length+'回';
+  const db=document.getElementById('digBtn');
+  db.disabled=c.digs.length===0;
+  hidePassTargets();
+  updateQueueIndicator();
+  updateScoreDisplay();
+}
+
+function buildQueueIndicator(){
+  document.getElementById('queueIndicator').innerHTML=
+    casesOrder.map((_,i)=>'<div class="queue-dot" id="qdot'+i+'"></div>').join('');
+}
+function updateQueueIndicator(){
+  casesOrder.forEach((_,i)=>{
+    const d=document.getElementById('qdot'+i); if(!d) return;
+    d.className='queue-dot'+(i<caseIndex?' done':i===caseIndex?' current':'');
+  });
+}
+function updateScoreDisplay(){
+  document.getElementById('scoreDisplay').textContent=score;
+  const pct=Math.max(0,Math.min(100,50+score));
+  document.getElementById('trustBar').style.width=pct+'%';
+}
+
+// 選択を記録して即次へ（フィードバックなし）
+function recordAndNext(c, cmd, target, rawDelta){
+  const isExplosion=(rawDelta===-999);
+  const delta=isExplosion ? -60 : rawDelta;
+  score+=delta; processedCases++;
+  if(delta>0) correctCases++;
+  if(isExplosion) specialTriggered=true;
+  sfxDecide(delta>0);
+  const cmdLabel={
+    scold:'❌ 却下', pass:'📤 丸投げ → '+(target||''), ignore:'⏩ 後回し'
+  }[cmd]||cmd;
+  actionHistory.push({ caseObj:c, cmdLabel, delta, isExplosion, hint:c.hint });
+  updateScoreDisplay();
+  caseIndex++;
+  loadCase();
+}
+
+function doCommand(cmd){
+  const c=casesOrder[caseIndex];
+  if(cmd==='dig'){
+    if(digLevel>=c.digs.length) return;
+    sfxDig();
+    timer=Math.max(0,timer-30); updateTimerDisplay();
+    digLevel++;
+    const di=document.getElementById('digInfo');
+    di.className='dig-info visible';
+    di.innerHTML=c.digs.slice(0,digLevel).map((d,i)=>'<b>情報'+(i+1)+'：</b>'+d).join('<br><br>');
+    document.getElementById('digCount').textContent='深掘り済み：'+digLevel+'/'+c.digs.length+'回（−30秒）';
+    if(digLevel>=c.digs.length) document.getElementById('digBtn').disabled=true;
+    if(c.digBonus>0){ score+=c.digBonus; updateScoreDisplay(); }
+    return;
+  }
+  if(cmd==='pass'){ sfxPass(); showPassTargets(); return; }
+  const delta=cmd==='scold' ? c.scoldScore : (c.ignoreScore!==undefined ? c.ignoreScore : -10);
+  recordAndNext(c, cmd, null, delta);
+}
+
+function showPassTargets(){
+  document.getElementById('passTargets').classList.add('visible');
+  document.getElementById('passGrid').innerHTML=
+    CHARACTERS.map(ch=>{
+      const e=CHAR_EMOJI[ch]||'👤';
+      return '<button class="target-btn" onclick="doPass(this.dataset.ch)" data-ch="'+ch+'">'+e+'<br>'+ch+'</button>';
+    }).join('');
+}
+function hidePassTargets(){ document.getElementById('passTargets').classList.remove('visible'); }
+function cancelPass(){ hidePassTargets(); }
+function doPass(target){
+  hidePassTargets();
+  const c=casesOrder[caseIndex];
+  let delta=c.passScore[target]!==undefined ? c.passScore[target] : -15;
+  if(c.special && c.specialTargets && c.specialTargets.includes(target)) delta=-999;
+  recordAndNext(c,'pass',target,delta);
+}
+
+// =========================================================
+// RESULT
+// =========================================================
+function showResult(){
+  clearInterval(timerInterval);
+  let rank,croc,title,quote;
+  if(specialTriggered){
+    rank='💥'; croc='💥'; title='本部崩壊エンド';
+    quote='「あのくそ道化師はどこだぁぁぁ！！！」\n─── クロコダイル（激怒）\n\nバギー玉が爆発し、クロスギルド本部は崩壊した。\nバギー座長は現在行方不明。';
+    sfxExplode();
+  } else if(score>=220){
+    rank='S'; croc='🐊'; title='信頼度：最高ランク';
+    quote='「……やれば出来るじゃねェか。\nまあ、今回だけだがな。」';
+  } else if(score>=150){
+    rank='A'; croc='🐊'; title='信頼度：及第点';
+    quote='「ふん、及第点だ。\n次はもっと効率よく動け。\n俺の時間を無駄にするな。」';
+  } else if(score>=80){
+    rank='B'; croc='😤'; title='信頼度：要改善';
+    quote='「少々ド派手な仕置が必要みてェだな？\n覚悟しておけ、道化師。」\n\n─── （拷問エンドへ続く）';
+  } else {
+    rank='C'; croc='😡'; title='信頼度：壊滅的';
+    quote='「……死ね。\n貴様のせいで今日だけで何人のスタッフが\n余計な仕事を抱えたと思っている。」\n\n─── クロコダイル（処刑エンドへ続く）';
+  }
+  if(!specialTriggered) sfxResult(rank);
+  const rr=document.getElementById('resultRank');
+  rr.textContent=rank;
+  rr.style.color=specialTriggered?'#ff4444':rank==='S'?'#ffd700':rank==='A'?'#d4a017':rank==='B'?'#c0392b':'#888';
+  rr.style.fontSize=specialTriggered?'60px':'';
+  document.getElementById('resultCroc').textContent=croc;
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultQuote').textContent=quote;
+  document.getElementById('statScore').textContent=score;
+  document.getElementById('statCases').textContent=processedCases;
+  document.getElementById('statCorrect').textContent=correctCases;
+  buildHistoryList();
+  showScreen('resultScreen');
+}
+
+function buildHistoryList(){
+  const el=document.getElementById('historyList');
+  if(!actionHistory.length){ el.innerHTML='<div style="color:var(--cream-dim);font-size:12px;padding:8px;">案件なし</div>'; return; }
+  el.innerHTML=actionHistory.map((h,i)=>{
+    const pt=h.delta>=0?'+'+h.delta:String(h.delta);
+    const ptClass=h.delta>0?'plus':h.delta<0?'minus':'zero';
+    const itemClass=h.isExplosion?'ng':h.delta>0?'ok':h.delta<0?'ng':'neutral';
+    const short=h.caseObj.text.length>50?h.caseObj.text.slice(0,50)+'…':h.caseObj.text;
+    return '<div class="h-item '+itemClass+'">'
+      +'<div class="h-row"><span class="h-from">#'+(i+1)+' '+h.caseObj.from+'</span>'
+      +'<span class="h-pt '+ptClass+'">'+(h.isExplosion?'💥 爆発':pt+' pt')+'</span></div>'
+      +'<div class="h-cmd">'+h.cmdLabel+'</div>'
+      +'<div class="h-text">'+short+'</div>'
+      +'<div class="h-hint">💬 '+h.hint+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function goTitle(){ clearInterval(timerInterval); showScreen('titleScreen'); }
+
+// =========================================================
+// STORAGE — 編集内容の永続保存
+// =========================================================
+const STORAGE_KEY = 'cgp-cases-v1';
+
+async function loadStoredCases(){
+  try {
+    const result = await window.storage.get(STORAGE_KEY);
+    if(result && result.value){
+      const saved = JSON.parse(result.value);
+      if(Array.isArray(saved) && saved.length > 0){
+        CASES.length = 0;
+        saved.forEach(c => CASES.push(c));
+        console.log('ストレージから案件ロード完了:', CASES.length+'件');
+        return true;
+      }
+    }
+  } catch(e) { /* storageが使えない環境ではデフォルトのまま */ }
+  return false;
+}
+
+async function persistCases(){
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(CASES));
+    return true;
+  } catch(e) { return false; }
+}
+
+// ページ読み込み時にストレージから案件を復元
+window.addEventListener('DOMContentLoaded', ()=>{
+  loadStoredCases();
+});
+
+// =========================================================
+// EDITOR
+// =========================================================
+function openEditor(){
+  renderEditor();
+  showScreen('editorScreen');
+}
+function closeEditor(){ showScreen('titleScreen'); }
+
+// エディタの全入力をCASESに反映して保存
+async function saveEditor(){
+  const result = collectEditorData();
+  if(!result.ok){
+    showNotice('⚠️ 送信者と本文は必須です', 'warn');
+    return;
+  }
+  CASES.length = 0;
+  result.cases.forEach(c => CASES.push(c));
+
+  const saved = await persistCases();
+  showNotice(
+    saved
+      ? '✅ 保存しました（' + CASES.length + '件）'
+      : '✅ 保存しました（' + CASES.length + '件 / このセッションのみ）',
+    'ok'
+  );
+}
+
+// エディタのフォームデータを収集する共通関数
+function collectEditorData(){
+  const cards = document.querySelectorAll('.case-card');
+  const cases = [];
+  let ok = true;
+  cards.forEach((card, i) => {
+    const g = n => card.querySelector('[data-field="' + n + '"]');
+    const from = g('from').value.trim();
+    const text = g('text').value.trim();
+    const hint = g('hint').value.trim();
+    if(!from || !text){ ok = false; return; }
+    const digs = [];
+    card.querySelectorAll('.dig-entry textarea').forEach(ta => {
+      if(ta.value.trim()) digs.push(ta.value.trim());
+    });
+    const scoldScore  = parseInt(g('scoldScore').value)  || 0;
+    const ignoreScore = parseInt(g('ignoreScore').value) || 0;
+    const digBonus    = parseInt(g('digBonus').value)    || 0;
+    const ps = {};
+    CHARACTERS.forEach(ch => {
+      const v = parseInt(card.querySelector('[data-ps="' + ch + '"]').value);
+      if(!isNaN(v)) ps[ch] = v;
+    });
+    const special = card.querySelector('[data-field="special"]').checked;
+    cases.push({
+      id: i + 1, from, text, digs, hint,
+      correctCommands: [], correctTargets: [],
+      permitScore: 0, scoldScore, digBonus,
+      passScore: ps, ignoreScore,
+      special,
+      specialTrigger: special ? ['permit'] : [],
+      specialTargets: []
+    });
+  });
+  return { ok, cases };
+}
+
+// ---- エクスポート ----
+function showExportModal(){
+  const result = collectEditorData();
+  const source = result.ok ? result.cases : CASES;
+  const exportData = {
+    version: 1,
+    title: 'クロスギルド・パニック！案件データ',
+    exportedAt: new Date().toISOString(),
+    cases: source.map(c => ({
+      from:        unescHtml(c.from),
+      text:        unescHtml(c.text),
+      digs:        (c.digs||[]).map(d => unescHtml(d)),
+      hint:        unescHtml(c.hint||''),
+      scoldScore:  c.scoldScore  || 0,
+      ignoreScore: c.ignoreScore || 0,
+      digBonus:    c.digBonus    || 0,
+      passScore:   c.passScore   || {},
+      special:     c.special     || false,
+    }))
+  };
+  document.getElementById('exportText').value = JSON.stringify(exportData, null, 2);
+  document.getElementById('exportModal').style.display = 'flex';
+}
+
+function unescHtml(s){
+  return String(s)
+    .replace(/&quot;/g,'"')
+    .replace(/&gt;/g,'>')
+    .replace(/&lt;/g,'<')
+    .replace(/&amp;/g,'&');
+}
+
+function selectAndCopyExport(){
+  const ta = document.getElementById('exportText');
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showNotice('📋 コピーしました！', 'ok');
+  } catch(e) {
+    showNotice('手動でテキストを選択してコピーしてください', 'warn');
+  }
+}
+
+// ---- インポート ----
+function showImportModal(){
+  document.getElementById('importText').value = '';
+  document.getElementById('importNotice').textContent = '';
+  document.getElementById('importModal').style.display = 'flex';
+}
+
+async function doImport(){
+  const text = document.getElementById('importText').value.trim();
+  const notice = document.getElementById('importNotice');
+  if(!text){ notice.textContent = '⚠️ テキストが空です'; notice.style.color='var(--danger)'; return; }
+  try {
+    const data = JSON.parse(text);
+    if(!data.cases || !Array.isArray(data.cases) || data.cases.length === 0){
+      notice.textContent = '⚠️ 有効な案件データが見つかりません';
+      notice.style.color = 'var(--danger)';
+      return;
+    }
+    const imported = data.cases.map((c, i) => ({
+      id:              i + 1,
+      from:            c.from            || '不明',
+      text:            c.text            || '',
+      digs:            Array.isArray(c.digs) ? c.digs : [],
+      hint:            c.hint            || '',
+      correctCommands: [],
+      correctTargets:  [],
+      permitScore:     0,
+      scoldScore:      typeof c.scoldScore  === 'number' ? c.scoldScore  : 0,
+      digBonus:        typeof c.digBonus    === 'number' ? c.digBonus    : 0,
+      passScore:       c.passScore        || {},
+      ignoreScore:     typeof c.ignoreScore === 'number' ? c.ignoreScore : 0,
+      special:         c.special          || false,
+      specialTrigger:  c.special ? ['permit'] : [],
+      specialTargets:  [],
+    }));
+    CASES.length = 0;
+    imported.forEach(c => CASES.push(c));
+    await persistCases();
+    renderEditor();
+    notice.textContent = '✅ インポート完了（' + CASES.length + '件）';
+    notice.style.color = 'var(--safe)';
+    setTimeout(() => { document.getElementById('importModal').style.display = 'none'; }, 1200);
+  } catch(err) {
+    notice.textContent = '⚠️ JSONの解析に失敗: ' + err.message;
+    notice.style.color = 'var(--danger)';
+  }
+}
+
+// ---- 通知表示 ----
+let noticeTimer = null;
+function showNotice(msg, type){
+  const el = document.getElementById('edNotice');
+  el.textContent = msg;
+  el.style.color = type === 'warn' ? 'var(--danger)' : 'var(--safe)';
+  clearTimeout(noticeTimer);
+  noticeTimer = setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function renderEditor(){
+  const list = document.getElementById('caseCardList');
+  list.innerHTML = CASES.map((c, i) => renderCaseCard(c, i)).join('');
+}
+
+function renderCaseCard(c, i){
+  const psFields = CHARACTERS.map(ch =>
+    '<div class="ps-item"><div class="ps-name">' + CHAR_EMOJI[ch] + ch + '</div>'
+    + '<input class="ed-num" data-ps="' + ch + '" type="number" value="'
+    + (c.passScore[ch] !== undefined ? c.passScore[ch] : 0) + '" style="width:100%"></div>'
+  ).join('');
+  const digFields = (c.digs || []).map(d =>
+    '<div class="dig-entry"><textarea class="ed-textarea" rows="2">' + escHtml(d) + '</textarea>'
+    + '<button class="del-dig" type="button" onclick="removeDig(this)">✕</button></div>'
+  ).join('');
+  return '<div class="case-card" id="card' + i + '">'
+    + '<div class="case-card-header" onclick="toggleCard(' + i + ')">'
+    + '<span class="card-num">#' + (i+1).toString().padStart(2,'0') + '</span>'
+    + '<span class="card-from-preview">' + escHtml(c.from) + ' — ' + escHtml((c.text||'').slice(0,30)) + '…</span>'
+    + '<span class="card-toggle" id="toggle' + i + '">▼</span>'
+    + '<button class="del-card-btn" type="button" onclick="removeCard(event,' + i + ')">🗑</button>'
+    + '</div>'
+    + '<div class="case-card-body" id="body' + i + '">'
+    + '<div class="ed-field"><div class="ed-label">送信者</div><input class="ed-input" data-field="from" value="' + escHtml(c.from) + '"></div>'
+    + '<div class="ed-field"><div class="ed-label">案件本文</div><textarea class="ed-textarea" data-field="text" rows="4">' + escHtml(c.text) + '</textarea></div>'
+    + '<div class="ed-field"><div class="ed-label">解説（リザルトで表示）</div><textarea class="ed-textarea" data-field="hint" rows="2">' + escHtml(c.hint||'') + '</textarea></div>'
+    + '<div class="ed-row" style="margin-bottom:10px">'
+    + '<div><div class="ed-label">却下スコア</div><input class="ed-num" data-field="scoldScore" type="number" value="' + (c.scoldScore||0) + '"></div>'
+    + '<div><div class="ed-label">後回しスコア</div><input class="ed-num" data-field="ignoreScore" type="number" value="' + (c.ignoreScore||0) + '"></div>'
+    + '<div><div class="ed-label">深掘りボーナス</div><input class="ed-num" data-field="digBonus" type="number" value="' + (c.digBonus||0) + '"></div>'
+    + '</div>'
+    + '<div class="ed-field"><div class="ed-label">深掘り情報（順番に開示）</div>'
+    + '<div class="dig-list">' + digFields + '</div>'
+    + '<button class="add-dig" type="button" onclick="addDig(this)">＋ 情報を追加</button></div>'
+    + '<div class="ed-field"><div class="ed-label">丸投げスコア</div><div class="pass-score-grid">' + psFields + '</div></div>'
+    + '<div class="ed-field" style="display:flex;align-items:center;gap:8px;">'
+    + '<input type="checkbox" data-field="special" id="sp' + i + '"' + (c.special ? ' checked' : '') + '>'
+    + '<label for="sp' + i + '" style="font-size:11px;color:var(--cream-dim);">特殊エンド案件（許可すると爆発）</label>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleCard(i){
+  const body = document.getElementById('body' + i);
+  const tog  = document.getElementById('toggle' + i);
+  if(!body) return;
+  const open = body.classList.toggle('open');
+  tog.classList.toggle('open', open);
+}
+
+function removeCard(ev, i){
+  ev.stopPropagation();
+  if(CASES.length <= 1){ alert('案件は最低1件必要です'); return; }
+  if(!confirm((i+1) + '番の案件を削除しますか？')) return;
+  const result = collectEditorData();
+  if(result.ok){ CASES.length = 0; result.cases.forEach(c => CASES.push(c)); }
+  CASES.splice(i, 1);
+  CASES.forEach((c, j) => { c.id = j + 1; });
+  renderEditor();
+}
+
+function addNewCase(){
+  const result = collectEditorData();
+  if(result.ok){ CASES.length = 0; result.cases.forEach(c => CASES.push(c)); }
+  const newC = {
+    id: CASES.length + 1, from: '', text: '', digs: [], hint: '',
+    correctCommands: [], correctTargets: [], permitScore: 0, scoldScore: 0,
+    digBonus: 0, passScore: {}, ignoreScore: 0, special: false,
+    specialTrigger: [], specialTargets: []
+  };
+  CASES.push(newC);
+  renderEditor();
+  setTimeout(() => toggleCard(CASES.length - 1), 50);
+}
+
+function removeDig(btn){ btn.closest('.dig-entry').remove(); }
+
+function addDig(btn){
+  const list = btn.previousElementSibling;
+  const entry = document.createElement('div');
+  entry.className = 'dig-entry';
+  entry.innerHTML = '<textarea class="ed-textarea" rows="2"></textarea>'
+    + '<button class="del-dig" type="button" onclick="removeDig(this)">✕</button>';
+  list.appendChild(entry);
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
