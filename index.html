@@ -425,7 +425,7 @@ body{background:var(--bg);color:var(--cream);font-family:'Kosugi Maru',sans-seri
 <div id="editorScreen" class="screen">
   <div class="editor-header">
     <h2>📝 案件エディタ</h2>
-    <button class="ed-btn save" onclick="saveEditor()">💾 保存</button>
+    <button class="ed-btn save" onclick="saveEditor()">💾 一時保存</button>
     <button class="editor-close" onclick="closeEditor()">✕ 閉じる</button>
   </div>
   <div class="editor-body">
@@ -1299,10 +1299,10 @@ function showResult(){
     rank='A'; croc='🐊'; title='信頼度：及第点'; stampClass='rank-a';
     quote='「及第点だが、次はもっと効率を考えて動け。\nおれの時間を無駄にするな。」';
   } else if(score>=130){
-    rank='B'; croc='😤'; title='信頼度：要改善'; stampClass='rank-b';
+    rank='B'; croc='🐊'; title='信頼度：要改善'; stampClass='rank-b';
     quote='「少々ド派手な仕置が必要みてェだな？」\n\n─── （会議室END）';
   } else {
-    rank='C'; croc='😡'; title='信頼度：壊滅的'; stampClass='rank-c';
+    rank='C'; croc='🖕'; title='信頼度：壊滅的'; stampClass='rank-c';
     quote='「……死ね。\n貴様のせいで何人のスタッフが余計な仕事を抱えたと思っている。」\n\n─── その後、バギーの姿を見たものは誰もいなかった（処刑END）';
   }
   if(!specialTriggered) sfxResult(rank);
@@ -1403,8 +1403,8 @@ async function saveEditor(){
   const saved = await persistCases();
   showNotice(
     saved
-      ? '✅ 保存しました（' + CASES.length + '件）'
-      : '✅ 保存しました（' + CASES.length + '件 / このセッションのみ）',
+      ? '✅ 一時保存しました（' + CASES.length + '件）'
+      : '✅ 一時保存しました（' + CASES.length + '件 / ブラウザを閉じるまで有効）',
     'ok'
   );
 }
