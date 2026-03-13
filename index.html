@@ -1294,16 +1294,16 @@ function showResult(){
     sfxExplode();
   } else if(score>=300){
     rank='S'; croc='🐊'; title='信頼度：最高ランク'; stampClass='rank-s';
-    quote='「……やれば出来るじゃねェか。\n今後もよろしく頼むぜ、座長サマ」';
+    quote='「……やれば出来るじゃねェか。\n今後もよろしく頼むぜ、四皇様」';
   } else if(score>=200){
     rank='A'; croc='🐊'; title='信頼度：及第点'; stampClass='rank-a';
-    quote='「ふん、及第点だ。\n次はもっと効率よく動け。\n俺の時間を無駄にするな。」';
+    quote='「及第点だが、次はもっと効率を考えて動け。\nおれの時間を無駄にするな。」';
   } else if(score>=130){
     rank='B'; croc='😤'; title='信頼度：要改善'; stampClass='rank-b';
-    quote='「少々ド派手な仕置が必要みてェだな？」\n\n─── （拷問エンドへ続く）';
+    quote='「少々ド派手な仕置が必要みてェだな？」\n\n─── （会議室END）';
   } else {
     rank='C'; croc='😡'; title='信頼度：壊滅的'; stampClass='rank-c';
-    quote='「……死ね。\n貴様のせいで今日だけで何人のスタッフが\n余計な仕事を抱えたと思っている。」\n\n─── クロコダイル（処刑エンドへ続く）';
+    quote='「……死ね。\n貴様のせいで何人のスタッフが余計な仕事を抱えたと思っている。」\n\n─── その後、バギーの姿を見たものは誰もいなかった（処刑END）';
   }
   if(!specialTriggered) sfxResult(rank);
   const stamp=document.getElementById('resultStamp');
